@@ -11,11 +11,11 @@ int main(int argc, char **argv) {
     char* test_image_bin;
     char* train_mean_file;
 
-    train_mean_file = (char *) "/data/lwang53/dataset/cifar/cifar_train.mean";
-    train_image_bin = (char *) "/data/lwang53/dataset/cifar/cifar10_train_image_0.bin";
-    train_label_bin = (char *) "/data/lwang53/dataset/cifar/cifar10_train_label_0.bin";
-    test_image_bin  = (char *) "/data/lwang53/dataset/cifar/cifar10_test_image_0.bin";
-    test_label_bin  = (char *) "/data/lwang53/dataset/cifar/cifar10_test_label_0.bin";
+    train_mean_file = (char *) "/home/shauryapatel1995/superneurons-release/cifar10/cifar_train.mean";
+    train_image_bin = (char *) "/home/shauryapatel1995/superneurons-release/cifar10/cifar10_train_image_0.bin";
+    train_label_bin = (char *) "/home/shauryapatel1995/superneurons-release/cifar10/cifar10_train_label_0.bin";
+    test_image_bin  = (char *) "/home/shauryapatel1995/superneurons-release/cifar10/cifar10_test_image_0.bin";
+    test_label_bin  = (char *) "/home/shauryapatel1995/superneurons-release/cifar10/cifar10_test_label_0.bin";
 
     const size_t batch_size = 256; //train and test must be same
     const size_t C = 3, H = 32, W = 32;

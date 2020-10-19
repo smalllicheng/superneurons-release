@@ -39,4 +39,15 @@ Wang, Linnan, et al. "Superneurons: dynamic GPU memory management for training d
 Wang, Linnan, Wei Wu, Yiyang Zhao, Junyu Zhang, Hang Liu, George Bosilca, Jack Dongarra, Maurice Herlihy, and Rodrigo Fonseca. "SuperNeurons: FFT-based Gradient Sparsification in the Distributed Training of Deep Neural Networks." arXiv preprint arXiv:1811.08596 (2018).
 </p>
 
-
+Bringing it upto speed - 
+1. Install cuda 11.1
+2. Install cudnn 8.something - runtime first and then dev. 
+3. Installed glog. 
+4. Copied all superneuron files from /usr/include to /usr/local/cuda/include
+5. Copied config to the main folder of the repo.
+6. Built the project.
+7. Download cifar 10 python version. 
+8. Run convert_cifar10 with the cifar folder and 1 and 1 as train and test arguments. 
+9. Run compute image mean on the converted image bin for test. 
+10. Update cifar 10 test with the new paths. 
+11. Build and run the cifar 10 test.
