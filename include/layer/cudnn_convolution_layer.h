@@ -42,8 +42,11 @@ private:
 
     //cudnn param
     cudnnConvolutionDescriptor_t    conv_desc;
+    cudnnConvolutionFwdAlgoPerf_t   f_conv_perf_alg;    
     cudnnConvolutionFwdAlgo_t       f_conv_alg;
+    cudnnConvolutionBwdDataAlgoPerf_t b_conv_perf_alg;   
     cudnnConvolutionBwdDataAlgo_t   b_conv_alg;
+    cudnnConvolutionBwdFilterAlgoPerf_t filter_perf_alg;
     cudnnConvolutionBwdFilterAlgo_t filter_alg;
     cudnnFilterDescriptor_t         filter_desc;
     cudnnDataType_t                 cudnn_data_type;

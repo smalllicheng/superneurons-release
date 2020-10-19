@@ -408,15 +408,16 @@ void conv_layer_t<value_type>::forward_setup(registry_t<value_type>* reg, cudnnH
     this->set_bias(bias, reg);
 
     // we first get the memory-save algorithm to set the f_conv_buff as placeholder
-    checkCUDNN( cudnnGetConvolutionForwardAlgorithm(*cudnn_h,
+    checkCUDNN( cudnnGetConvolutionForwardAlgorithm_v7(*cudnn_h,
                                                     t_in->get_tensor_desc(),
                                                     this->filter_desc,
                                                     this->conv_desc,
                                                     t_out->get_tensor_desc(),
-                                                    CUDNN_CONVOLUTION_FWD_NO_WORKSPACE,
+                                                    1,
                                                     0,
-                                                    &(this->f_conv_alg)
+                                                    &(this->f_conv_perf_alg)
                                                     ) );
+	this->f_conv_alg = this->f_conv_perf_alg.algo;
     checkCUDNN( cudnnGetConvolutionForwardWorkspaceSize(*cudnn_h,
                                                         t_in->get_tensor_desc(),
                                                         this->filter_desc,
@@ -497,14 +498,15 @@ void conv_layer_t<value_type>::backward_setup(registry_t<value_type>* reg, cudnn
     this->set_bias_grad(bias_grad, reg);
     this->set_bias_prev(bias_prev, reg);
 
-    checkCUDNN( cudnnGetConvolutionBackwardDataAlgorithm(*cudnn_h,
+    checkCUDNN( cudnnGetConvolutionBackwardDataAlgorithm_v7(*cudnn_h,
                                                          this->filter_desc,
                                                          dEdD->get_tensor_desc(),
                                                          this->conv_desc,
                                                          b_data->get_tensor_desc(),
-                                                         CUDNN_CONVOLUTION_BWD_DATA_NO_WORKSPACE,
+                                                         1,
                                                          0,
-                                                         &(this->b_conv_alg) ) );
+                                                         &(this->b_conv_perf_alg) ) );
+	this->b_conv_alg = this->b_conv_perf_alg.algo;
 
     checkCUDNN( cudnnGetConvolutionBackwardDataWorkspaceSize(*cudnn_h,
                                                              this->filter_desc,
@@ -518,14 +520,15 @@ void conv_layer_t<value_type>::backward_setup(registry_t<value_type>* reg, cudnn
     this->b_conv_buff = new tensor_t<value_type>(1, 1, 1, buff_W, reg->get_vector(), CONV_BUFF, this->get_id() );
 
 
-    checkCUDNN( cudnnGetConvolutionBackwardFilterAlgorithm(*cudnn_h,
+    checkCUDNN( cudnnGetConvolutionBackwardFilterAlgorithm_v7(*cudnn_h,
                                                            t_in->get_tensor_desc(),
                                                            dEdD->get_tensor_desc(),
                                                            this->conv_desc,
                                                            this->filter_desc,
-                                                           CUDNN_CONVOLUTION_BWD_FILTER_NO_WORKSPACE,
+                                                           1,
                                                            0,
-                                                           &(this->filter_alg) ) );
+                                                           &(this->filter_perf_alg) ) );
+	this->filter_alg = this->filter_perf_alg.algo;
 
     checkCUDNN( cudnnGetConvolutionBackwardFilterWorkspaceSize(*cudnn_h,
                                                                t_in->get_tensor_desc(),
