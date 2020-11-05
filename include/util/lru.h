@@ -7,6 +7,7 @@
 
 #include <util/common.h>
 
+// lru class.
 namespace SuperNeurons {
 
 class lru_block_t {
@@ -43,7 +44,7 @@ public:
             delete tmp;
         }
     }
-
+    // Linkedlist update, move requested block to the start. O(n)
     void update(void* item) {
         if (item == NULL) {
             return;
@@ -87,6 +88,7 @@ public:
         }
     }
 
+    // returns the pointer to the value of the nodes
     void* remove_oldest() {
         if (tail == NULL) {
             return NULL;
@@ -180,7 +182,7 @@ public:
     }
 };
 
-
+// return a singleton instance of the list.
 class lru_singleton {
 private:
     lru_list_t* list;

@@ -3,6 +3,7 @@
 
 blasx_gpu_singleton* blasx_gpu_singleton::instance = NULL;
 
+// Initialize a slab on a GPU given its id.
 blasx_gpu_malloc_t *blasx_gpu_malloc_init(int GPU_id)
 {
     cudaError_t cuda_err = cudaSetDevice(GPU_id);
@@ -26,6 +27,7 @@ blasx_gpu_malloc_t *blasx_gpu_malloc_init(int GPU_id)
 #ifdef gpu_malloc_info
     fprintf(stderr,"blasx_gpu_malloc is using %lu MB\n", (size_t) BLASX_GPU_MEM_SIZE/1000000);
 #endif
+    // initalize the gpu malloc block.
     blasx_gpu_malloc_t *gdata = (blasx_gpu_malloc_t*)malloc( sizeof(blasx_gpu_malloc_t) );
     void *ptr = NULL;
     blasx_gpu_segment_t *s;
@@ -47,7 +49,7 @@ blasx_gpu_malloc_t *blasx_gpu_malloc_init(int GPU_id)
         free(gdata);
         exit(1);
     }
-
+    // Allocate gpu segments. 
     for(i = 0 ; i < BLASX_GPU_MEM_MAX_SEGMENT; i++) {
         s = (blasx_gpu_segment_t*)malloc(sizeof(blasx_gpu_segment_t));
         s->next = gdata->free_segments;
@@ -113,7 +115,7 @@ void blasx_gpu_malloc_fini(blasx_gpu_malloc_t* gdata, int GPU_id)
     printf("--------------------\n");
 #endif
 }
-
+// Allocate to an existing data. Return the pointer to the memory.
 void *blasx_gpu_malloc(blasx_gpu_malloc_t *gdata, size_t nbytes)
 {
     //cuDNN needs an alignment of 16
