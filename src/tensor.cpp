@@ -8,7 +8,7 @@
 namespace SuperNeurons{
 
 //PRIVATE METHODS
-
+// Check the atomic state value given a target mem mode.
 template <class value_type>
 inline void tensor_t<value_type>::check_state(mem_mode target) {
 #ifdef DEBUG
@@ -19,6 +19,7 @@ inline void tensor_t<value_type>::check_state(mem_mode target) {
 #endif
 }
 
+// set the memory mode state of a tensor.
 template <class value_type>
 inline void tensor_t<value_type>::atomic_set_state(int new_val) {
     int old_val = this->state.load();
@@ -49,6 +50,7 @@ void tensor_t<value_type>::sync_cpu_to_gpu() {
         return;
     }
 
+    // Checks the atomic mem mode of the tensor. 
     check_state(CPU2GPU);
 
     checkCudaErrors( cudaEventSynchronize(this->cpu2gpu_event) );
@@ -205,16 +207,18 @@ void tensor_t<value_type>::async_gpu_to_cpu() {
     checkCudaErrors(cudaEventRecord(this->gpu2cpu_event, stream_singleton::get_gpu2cpu_stream()));
 }
 
+// Checks CPU to GPU event readiness. 
 template <class value_type>
 inline bool tensor_t<value_type>::is_cpu_to_gpu_ready() {
     /**
      * check if the async cpu 2 gpu finish.
      * state : CPU2GPU -> GPU
      */
+    // This value is an atomic bool.
     if (cpu2gpu_event_not_happen.load()) {
         return true;
     }
-
+    // Check the state.
     check_state(CPU2GPU);
 
     cudaError_t r = cudaEventQuery(this->cpu2gpu_event);
@@ -292,6 +296,7 @@ value_type tensor_t<value_type>::squared_sum(cublasHandle_t *handle) {
     return result;
 }
 
+// Copy this tensor into another with same value type.
 template <class value_type>
 void tensor_t<value_type>::copy(tensor_t<value_type>* t,
                                 int src_start_idx, int src_end_idx,
@@ -315,7 +320,9 @@ void tensor_t<value_type>::copy(tensor_t<value_type>* t,
         offset_dst = (size_t) dst_start_idx;
     }
     // TODO : this memcpy is with error in loss decrease
+    // What the fuck is the problem here?
 //    cudaMemcpy(this->get_gpu_ptr()+offset_dst, t->get_gpu_ptr()+offset_src, len, cudaMemcpyDeviceToDevice);
+    // Defined in the tensor.cu file
     tensor_copy(t->get_gpu_ptr()+offset_src, this->get_gpu_ptr()+offset_dst, len);
 }
 
@@ -505,6 +512,7 @@ void tensor_t<value_type>::init(initializer_t<value_type> *initializer) {
 //    delete initializer;
 }
 
+// Main function to acquire space on the GPU.
 template <class value_type>
 void tensor_t<value_type>::acquireSpaceGPU(long total) {
     if ( gpu_ptr != NULL) {
@@ -546,7 +554,7 @@ void tensor_t<value_type>::acquireSpaceGPU(long total) {
             printf("tensor %p layer %d\n", t, t->get_layer_id());
             x += 1;
         }
-
+	// TODO - Possible code change here to move to compressed.
         // kick out some tensors in LRU
         tensor_t<value_type> *t = (tensor_t<value_type> *) (lru->remove_oldest());
         if (t == NULL) {

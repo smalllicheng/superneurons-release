@@ -22,7 +22,9 @@
 //#define BLASX_MALLOC
 
 namespace SuperNeurons{
-    
+
+// Possible type of the tensor. 
+// Important for us right now is Conv and data. 	
 typedef enum TENSOR_TYPE {
     DATA        = 0,
     GRAD        = 1,
@@ -76,13 +78,16 @@ private:
     void acquireSpaceCPU(long total) {
         assert( cpu_ptr == NULL );
         assert( total > 0 );
-        checkCudaErrors( cudaMallocHost(&(this->cpu_ptr), total*sizeof(value_type) ) );
+    	
+	// cudaMallocHost gets memory on CPU which is directly accessible to GPU, increases bandwidth.
+    	checkCudaErrors( cudaMallocHost(&(this->cpu_ptr), total*sizeof(value_type) ) );
     }
 
     void freeSpaceCPU() {
         if (cpu_ptr == NULL) {
             return;
         }
+	// Free the accessible memory.
         checkCudaErrors(cudaFreeHost(this->cpu_ptr));
         this->cpu_ptr = NULL;
     }
@@ -144,9 +149,11 @@ public:
         }
         
 #ifdef LIVENESS
+	// Liveness activated then don't save memory for Data or conv on gpus.
         if(this->data_t != CONV_BUFF && this->data_t != DATA ) {
             acquireSpaceGPU(n*c*h*w);
         }
+	// Save memory for anything but CONV on CPU.
         if( this->data_t != CONV_BUFF ) acquireSpaceCPU(n*c*h*w);
 #else
         acquireSpaceCPU(n*c*h*w);
@@ -206,6 +213,8 @@ public:
 
     /**
      * NCHW, layer_id, data_type, data
+     * Don't know yet what is this used for.
+     * Why do we even need this?
      */
     void gen_description(char* buff, size_t* len_in_byte) {
         value_type _n = N, _c = C, _h = H, _w = W;
@@ -247,7 +256,8 @@ public:
     inline size_t get_scalar_count() {
         return this->get_N()*this->get_C()*this->get_H()*this->get_W();
     }
-    
+   
+   // Useful method for comparing the sizes. 
     inline size_t get_mem_size() {
         const size_t total_size_bytes = sizeof(value_type)*this->N*this->C*this->H*this->W;
         return total_size_bytes;
