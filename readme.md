@@ -51,3 +51,7 @@ Bringing it upto speed -
 9. Run compute image mean on the converted image bin for test. 
 10. Update cifar 10 test with the new paths. 
 11. Build and run the cifar 10 test.
+
+How to configure the project with the different modes - 
+1. For this we need to use the script testbench.sh. 
+2. Pass the options that we want to enable in this particular project and recompile the tests.
