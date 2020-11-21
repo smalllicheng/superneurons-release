@@ -76,5 +76,6 @@ AlexNet() {
 #define LARGER
 #define LRU_ON
 #define BLASX_MALLOC
-AlexNet false false false false true
-AlexNet true false false false true
+#AlexNet false false false false true
+#AlexNet true false false false true
+testFunc cifar10 $1 $2 $3 $4 $5

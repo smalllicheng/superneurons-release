@@ -218,6 +218,7 @@ void liveness_analysis_t<value_type>::stash(int layer_id, net_comp dir) {
         }
 #endif
         if (t->get_type() == CONV_BUFF) {
+	    printf("Stashing space for conv_buff\n");
             t->stash_gpu_space();
         } else {
             t->CPUtoGPU();
