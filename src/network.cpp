@@ -262,6 +262,7 @@ void network_t<value_type>::forward_test(network_stage stage, base_layer_t<value
     mem_controller.reset_tensor_state();
 }
 
+// Setup forward in a network and add layers to registry based on the DAG.
 template <class value_type>
 void network_t<value_type>::fsetup_kernel(base_layer_t<value_type>* b) {
     if(b == NULL) return;
