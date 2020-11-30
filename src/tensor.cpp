@@ -602,15 +602,20 @@ void tensor_t<value_type>::freeSpaceGPU(mem_mode target) {
         this->atomic_set_state(target);
     }
 
-    if (gpu_ptr == NULL) {
+    if (gpu_ptr == NULL && compressed_gpu_ptr == NULL) {
         return;
     }
 #ifdef DEBUG
     printf("free tensor %p layer %d gpu %p  curt: %d target: %d\n", this, this->get_layer_id(), gpu_ptr, get_state(), target);
 #endif
 
-    gfree(gpu_malloc, this->gpu_ptr);
-    this->gpu_ptr = NULL;
+    if(gpu_ptr != NULL) {
+        gfree(gpu_malloc, this->gpu_ptr);
+        this->gpu_ptr = NULL; 
+    } else if(compressed_gpu_ptr != NULL) {
+        gfree(gpu_malloc, this->compressed_gpu_ptr);
+        this->compressed_gpu_ptr = NULL; 
+    }
 
 #ifdef LRU_ON
     if (this->get_type() == DATA) {

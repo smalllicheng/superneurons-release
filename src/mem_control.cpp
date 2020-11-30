@@ -10,6 +10,7 @@ template <class value_type>
 void mem_controller_t<value_type>::init(registry_t<value_type> *r) {
     this->reg = r;
 
+    // Sets the memory mode of CONV and DATA to void. 
     set_regulated_tensors();
 
     // set liveness, prefetch, recompute
@@ -207,6 +208,9 @@ void mem_controller_t<value_type>::print_layer_type(int layer_id, net_comp dir) 
 }
 
 /*--------control--start--------------------*/
+/*
+    Stash tensors is basically get the required tensors on the GPU.
+*/
 template <class value_type>
 void mem_controller_t<value_type>::stash_tensor(int layer_id, net_comp dir, network_stage stage) {
 
@@ -215,6 +219,7 @@ void mem_controller_t<value_type>::stash_tensor(int layer_id, net_comp dir, netw
 #endif
 
 #ifdef LIVENESS
+    // layer_id, forward.
     live_anls->stash(layer_id, dir);
     print_regulated_tensors();
 #endif

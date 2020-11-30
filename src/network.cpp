@@ -156,7 +156,7 @@ void network_t<value_type>::forward_kernel(network_stage stage, base_layer_t<val
     for(size_t i = 0; i < net_comp_route.size(); i++) {
         if( net_comp_route[i].second == FORWARD ) {
             int layer_id = net_comp_route[i].first;
-	    printf("Forward on layer %d\n", layer_id);
+	        printf("Forward on layer %d\n", layer_id);
             // stash tensors
             mem_controller.stash_tensor( layer_id, FORWARD , NET_TRAIN);
 

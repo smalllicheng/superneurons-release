@@ -63,8 +63,11 @@ public:
                                              subsequent_backward(_subsequent_backward),
                                              CHECKPOINT_LAYERS(_CHECKPOINT_LAYERS),
                                              max_layer_id(_max_layer_id) {
+        // stash the forward dependencies that are CONV and DATA and regulated in this.
         set_ins(&f_stash_tensors, FORWARD);
         set_ins(&b_stash_tensors, BACKWARD);
+
+        // This checks if subsequent layers use this tensor, if they dont they free it.
         set_outs(&f_free_tensors, FORWARD);
         set_outs(&b_free_tensors, BACKWARD);
 

@@ -44,6 +44,7 @@ private:
     TENSOR_TYPE    data_t;
     value_type*    gpu_ptr  = NULL;                  //gpu and cpu data are mutually exclusive
     value_type*    cpu_ptr  = NULL;
+    value_type*    compressed_gpu_ptr = NULL;       // If data is in gpu it can be compressed or uncompressed.
     cufftComplex*  freq_ptr = NULL;
     
     size_t GPU_id;                               //this identifies the GPU RAM
@@ -93,6 +94,8 @@ private:
     }
 
     void acquireSpaceGPU(long total);
+    void compressGpuData();
+    void decompressGpuData();
     void freeSpaceGPU(mem_mode target=CPU);
 
     // make it private
@@ -155,6 +158,10 @@ public:
         }
 	// Save memory for anything but CONV on CPU.
         if( this->data_t != CONV_BUFF ) acquireSpaceCPU(n*c*h*w);
+
+        if(this->data_t == CONV_BUFF && this->data_t == DATA) {
+            // Acquire and compress the space.
+        }
 #else
         acquireSpaceCPU(n*c*h*w);
         acquireSpaceGPU(n*c*h*w);
@@ -202,6 +209,7 @@ public:
     ~tensor_t() {
         if(cpu_ptr != NULL) cudaFreeHost(cpu_ptr);
         if(gpu_ptr != NULL) gpu_ptr = NULL;
+        if(compressed_gpu_ptr != NULL) compressed_gpu_ptr = NULL;
         checkCUDNN( cudnnDestroyTensorDescriptor(cudnn_tensor_desc) );
         cufftDestroy(fft_plan_f);
         cufftDestroy(fft_plan_b);
