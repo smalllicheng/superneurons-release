@@ -35,9 +35,13 @@ bool liveness_analysis_t<value_type>::is_used_by_layer(int layer_id, net_comp di
 
 template<class value_type>
 bool liveness_analysis_t<value_type>::is_freeable_afterwards(int curt_layer_id, net_comp dir, tensor_t<value_type> *t) {
+    // Get the subsequent layers in the direction given from the current layer. 
     std::vector<std::pair<int, net_comp> > subsequent_layers = get_subsequent_layers(curt_layer_id, dir);
+    printf("Layer being checked is: %d %d\n", curt_layer_id, dir);
     for (size_t i = 0; i < subsequent_layers.size(); i++) {
         std::pair<int, net_comp> layer = subsequent_layers[i];
+        printf("Subsequent layer: %d %d\n",layer.first, layer.second);
+        // Check a tensor for each subsequent layer if it is being used and free it if it is.
         bool is_used = is_used_by_layer(layer.first, layer.second, t);
         if (is_used) {
             return false;
@@ -46,6 +50,7 @@ bool liveness_analysis_t<value_type>::is_freeable_afterwards(int curt_layer_id, 
     return true;
 }
 
+// This is used to track which regulated tensors do each layers use.
 template<class value_type>
 void liveness_analysis_t<value_type>::set_ins(std::vector<std::vector<void *> > *ins, net_comp dir) {
     ins->resize(max_layer_id + 1);
@@ -131,7 +136,7 @@ void liveness_analysis_t<value_type>::set_outs(std::vector<std::vector<void *> >
                 }
             }
 #endif
-
+            // This method can potentially be used to decide what to compress.
             bool freeable = is_freeable_afterwards(layer_id, dir, t);
 
             if (freeable) {
@@ -229,6 +234,10 @@ void liveness_analysis_t<value_type>::stash(int layer_id, net_comp dir) {
         }
     }
 
+    // Decompress compressed tensors on backward. 
+
+    
+
 
 #ifdef MEM_DEBUG
     printf("\n-------ins------\n");
@@ -278,6 +287,9 @@ void liveness_analysis_t<value_type>::update(int layer_id, net_comp dir) {
         tensor_t<value_type> *t = *it;
         t->free_gpu_space(VOID);
     }
+
+    // Compress tensors for forward.
+    
 #ifdef MEM_DEBUG
     printf("\n-------outs------\n");
     for (int i = 1; i < outs->size(); ++i) {

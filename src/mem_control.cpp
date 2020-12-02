@@ -13,7 +13,7 @@ void mem_controller_t<value_type>::init(registry_t<value_type> *r) {
     // Sets the memory mode of CONV and DATA to void. 
     set_regulated_tensors();
 
-    // set liveness, prefetch, recompute
+    // set liveness, prefetch, recompute, compress.
 
     max_layer_id = -1;
     for (auto it = r->get_net_layers().begin(); it!=r->get_net_layers().end(); ++it) {

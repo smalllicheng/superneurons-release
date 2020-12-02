@@ -99,6 +99,39 @@ void tensor_t<value_type>::GPUtoCPU() {
 #endif
 }
 
+// Tensor compression.
+// For now we just compress the activation maps of each conv.
+template <class value_type> 
+void tensor_t<value_type>::CompressTensor() {
+    
+    // check gpu_ptr
+    if(this->gpt_ptr == NULL) {
+        return;
+    }
+
+    // compress the tensor
+
+    // free gpu space
+    freeSpaceGpu();
+    
+    // set the state to compressed.
+    this->atomic_set_state(GPU_COM);
+    return; 
+
+}
+
+// Tensor decompression. 
+template <class value_type> 
+void tensor_t<value_type>::DecompressTensor() {
+    if(this->compressed_gpu_ptr == NULL) 
+        return; 
+
+    // decompress the tensor. 
+
+    // free compressed space
+    freeSpaceCompressed();
+}
+
 template <class value_type>
 void tensor_t<value_type>::CPUtoGPU() {
     /**
@@ -602,7 +635,7 @@ void tensor_t<value_type>::freeSpaceGPU(mem_mode target) {
         this->atomic_set_state(target);
     }
 
-    if (gpu_ptr == NULL && compressed_gpu_ptr == NULL) {
+    if (gpu_ptr == NULL) {
         return;
     }
 #ifdef DEBUG
@@ -612,10 +645,7 @@ void tensor_t<value_type>::freeSpaceGPU(mem_mode target) {
     if(gpu_ptr != NULL) {
         gfree(gpu_malloc, this->gpu_ptr);
         this->gpu_ptr = NULL; 
-    } else if(compressed_gpu_ptr != NULL) {
-        gfree(gpu_malloc, this->compressed_gpu_ptr);
-        this->compressed_gpu_ptr = NULL; 
-    }
+    } 
 
 #ifdef LRU_ON
     if (this->get_type() == DATA) {
