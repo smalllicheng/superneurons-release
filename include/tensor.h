@@ -47,6 +47,7 @@ private:
     value_type*    compressed_gpu_ptr = NULL;       // If data is in gpu it can be compressed or uncompressed.
     cufftComplex*  freq_ptr = NULL;
     
+    size_t compressed_size;     
     size_t GPU_id;                               //this identifies the GPU RAM
     int layer_id;                                //this identifies the affilited layer
     size_t N;
