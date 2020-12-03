@@ -105,7 +105,7 @@ template <class value_type>
 void tensor_t<value_type>::compress() {
     
     // check gpu_ptr
-    if(this->gpt_ptr == NULL) {
+    if(this->gpu_ptr == NULL) {
         return;
     }
 

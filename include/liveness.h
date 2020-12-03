@@ -35,6 +35,8 @@ private:
 
     bool is_used_by_layer(int layer_id, net_comp dir, tensor_t <value_type> *t);
 
+    bool is_compressible_afterwards(int curt_layer_id, tensor_t<value_type> *t);    
+
     bool is_freeable_afterwards(int curt_layer_id, net_comp dir, tensor_t <value_type> *t);
 
     void set_ins(std::vector<std::vector<void *> > *ins, net_comp dir);
