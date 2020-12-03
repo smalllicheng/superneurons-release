@@ -3,7 +3,9 @@
 #include <cublas_alias.h>
 #include <util/mem_util.h>
 #include <thread>
-
+#include "zfp.h"
+#include <cuda_runtime_api.h>
+#include <cuda.h>
 
 namespace SuperNeurons{
 
@@ -109,8 +111,47 @@ void tensor_t<value_type>::compress() {
         return;
     }
 
-    // compress the tensor
+    // compress the tensor. TODO - Check for the value type here to set the zfp_type for the required data. 
+    if(true) {
+	// start with compression. 
+	zfp_type type = zfp_type_float;                          
+	zfp_field* field = zfp_field_1d(this->gpu_ptr, type, this->N * this->C * this->H * this->W);
+	
+	zfp_stream* zfp = zfp_stream_open(NULL);                  // compressed stream and parameters
+	zfp->maxbits = 16; 	
+	// initialize metadata for a compressed stream
+	zfp_stream_set_rate(zfp, 12, type, 1, 0);
 
+
+	// zfp_stream_set_accuracy(zfp, tolerance);                  // set tolerance for fixed-accuracy mode
+	//  zfp_stream_set_precision(zfp, precision);             // alternative: fixed-precision mode
+	//  zfp_stream_set_rate(zfp, rate, type, 3, 0);           // alternative: fixed-rate mode
+
+	// allocate buffer for compressed data
+	size_t bufsize = zfp_stream_maximum_size(zfp, field);     // capacity of compressed buffer (conservative)
+	void* buffer; 
+	cudaMalloc(&buffer, bufsize);                           // storage for compressed stream
+
+	// associate bit stream with allocated buffer
+	bitstream* stream = stream_open(buffer, bufsize);         // bit stream to compress to
+	zfp_stream_set_bit_stream(zfp, stream);                   // associate with compressed stream
+	zfp_stream_rewind(zfp);                                   // rewind stream to beginning
+
+	
+	// Compress on gpu.
+	if (zfp_stream_set_execution(zfp, zfp_exec_cuda)) {
+		size_t zfpsize = zfp_compress(zfp, field);                // return value is byte size of compressed stream
+		cudaMalloc((void **)&this->compressed_gpu_ptr, zfpsize);
+		// Copy to compressed region.
+		checkCudaErrors(
+            cudaMemcpy((void *) this->compressed_gpu_ptr,
+                       (void *) buffer,
+                       zfpsize, cudaMemcpyDeviceToDevice));
+		cudaFree(buffer); 
+	} else {
+		printf("Compression wasn't successful!\n");
+	}
+    } 
     // free gpu space
     // freeSpaceGpu();
     

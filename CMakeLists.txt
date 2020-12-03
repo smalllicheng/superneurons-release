@@ -103,7 +103,7 @@ include_directories(${HEADER_DIR})
 include_directories(${SOURCE_DIR})
 include_directories(/usr/include)
 include_directories(/usr/local/include)
-
+include_directories(/usr/shauryapatel1995/zfp/include)
 
 ##########################################################
 # add src and testing
