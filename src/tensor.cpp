@@ -107,7 +107,7 @@ template <class value_type>
 void tensor_t<value_type>::compress() {
     
     // check gpu_ptr
-    if(this->gpu_ptr == NULL) {
+    if(this->gpu_ptr == NULL || this->cudnn_data_type != CUDNN_DATA_FLOAT) {
         return;
     }
 
@@ -149,7 +149,7 @@ void tensor_t<value_type>::compress() {
                        (void *) buffer,
                        zfpsize, cudaMemcpyDeviceToDevice));
 		cudaFree(buffer); 
-		printf("Compressed tensor!!");
+		// printf("compress tensor %p layer %d gpu %p  curt: %d\n", this, this->get_layer_id(), gpu_ptr, get_state());
 	} else {
 		printf("Compression wasn't successful!\n");
 	}
@@ -165,14 +165,16 @@ void tensor_t<value_type>::compress() {
 // Tensor decompression. 
 template <class value_type> 
 void tensor_t<value_type>::decompress() {
-    if(this->compressed_gpu_ptr == NULL) 
+    if(this->compressed_gpu_ptr == NULL && this->gpu_ptr != NULL) 
         return; 
 
     // decompress the tensor. 
+    size_t decompress_size = this->N * this->H * this->C * this->W;
     zfp_type type = zfp_type_float;
-    zfp_field* field = zfp_field_1d(this->compressed_gpu_ptr, type, this->compressed_size);
+    zfp_field* field = zfp_field_1d(this->gpu_ptr, type, decompress_size);
 
-    zfp_stream* zfp = zfp_stream_open(NULL);                  // compressed stream and parameters
+    bitstream * compressed_stream = stream_open((void *)this->compressed_gpu_ptr, this->compressed_size);
+    zfp_stream* zfp = zfp_stream_open(compressed_stream);                  // compressed stream and parameters
     zfp->maxbits = 16;
     // initialize metadata for a compressed stream
     zfp_stream_set_rate(zfp, 12, type, 1, 0);
@@ -190,20 +192,23 @@ void tensor_t<value_type>::decompress() {
     
     if (zfp_stream_set_execution(zfp, zfp_exec_cuda)) {
     	size_t zfpsize = zfp_decompress(zfp, field);
-	cudaMalloc((void **)&this->gpu_ptr, (size_t)(this->N * this->H * this->C * this->W));
+	// printf("zfpsize is %d\n", zfpsize);
+	size_t decompress_size = this->N * this->H * this->C * this->W;
+	// cudaMalloc((void **)&this->gpu_ptr, decompress_size);
+	acquireSpaceGPU(decompress_size);
         checkCudaErrors(
             cudaMemcpy((void *) this->gpu_ptr,
                        (void *) buffer,
-                       (size_t)(this->N * this->H * this->C * this->W), cudaMemcpyDeviceToDevice));
-        cudaFree(buffer);
-        printf("Decompressed tensor!");
+                       decompress_size, cudaMemcpyDeviceToDevice));
+        checkCudaErrors(cudaFree(buffer));
+        // printf("Decompressed tensor at layer %d\n!", this->layer_id);
     } else {
 	printf("Decompression not possible\n");
     } 
     // free compressed space
-    cudaFree(this->compressed_gpu_ptr);
+   checkCudaErrors(cudaFree(this->compressed_gpu_ptr));
     
-    this->atomic_set_state(GPU_FUL);
+   this->atomic_set_state(GPU_FUL);
 }
 
 template <class value_type>
@@ -718,9 +723,7 @@ void tensor_t<value_type>::freeSpaceGPU(mem_mode target) {
     if (gpu_ptr == NULL) {
         return;
     }
-#ifdef DEBUG
-    printf("free tensor %p layer %d gpu %p  curt: %d target: %d\n", this, this->get_layer_id(), gpu_ptr, get_state(), target);
-#endif
+    // printf("free tensor %p layer %d gpu %p  curt: %d target: %d\n", this, this->get_layer_id(), gpu_ptr, get_state(), target);
 
     if(gpu_ptr != NULL) {
         gfree(gpu_malloc, this->gpu_ptr);

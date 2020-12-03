@@ -37,10 +37,10 @@ template<class value_type>
 bool liveness_analysis_t<value_type>::is_freeable_afterwards(int curt_layer_id, net_comp dir, tensor_t<value_type> *t) {
     // Get the subsequent layers in the direction given from the current layer. 
     std::vector<std::pair<int, net_comp> > subsequent_layers = get_subsequent_layers(curt_layer_id, dir);
-    printf("Layer being checked is: %d %d\n", curt_layer_id, dir);
+    // printf("Layer being checked is: %d %d\n", curt_layer_id, dir);
     for (size_t i = 0; i < subsequent_layers.size(); i++) {
         std::pair<int, net_comp> layer = subsequent_layers[i];
-        printf("Subsequent layer: %d %d\n",layer.first, layer.second);
+        // printf("Subsequent layer: %d %d\n",layer.first, layer.second);
         // Check a tensor for each subsequent layer if it is being used and free it if it is.
         bool is_used = is_used_by_layer(layer.first, layer.second, t);
         if (is_used) {
