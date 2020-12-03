@@ -229,9 +229,9 @@ void liveness_analysis_t<value_type>::set_outs(std::vector<std::vector<void *> >
 template<class value_type>
 void liveness_analysis_t<value_type>::set_compress(std::vector<std::vector<void *> > *compress, net_comp dir) {
     if(dir == BACKWARD) 
-        return; 
-    
+        return;
 
+    compress->resize(max_layer_id + 1);
     printf("Starting the compress now!\n"); 
     auto all_layers = reg->get_net_layers();
     auto nets = reg->get_net_comp_route();
