@@ -54,8 +54,9 @@ template<class value_type>
 bool liveness_analysis_t<value_type>::is_compressible_afterwards(int curt_layer_id, tensor_t<value_type> *t) {
     int i = 0; 
     net_comp dir = FORWARD;
+    printf("Checking compressible for layer %d\n", curt_layer_id);
     std::vector<std::pair<int, net_comp> > subsequent_layers = get_subsequent_layers(curt_layer_id, FORWARD);
-    bool is_used = false; 
+    bool is_used = true; 
     while(i < subsequent_layers.size() && dir == FORWARD) {
         std::pair<int, net_comp> layer = subsequent_layers[i];
         // Next loop for backward
@@ -67,8 +68,9 @@ bool liveness_analysis_t<value_type>::is_compressible_afterwards(int curt_layer_
         if(is_used)
             return false;
         
-        ++i;
+        i++;
     } 
+
     is_used = false;
     printf("Checking backward!\n"); 
     while(i < subsequent_layers.size()) {
@@ -81,10 +83,11 @@ bool liveness_analysis_t<value_type>::is_compressible_afterwards(int curt_layer_
         if(is_used)
             break;
         
-        ++i;
+        i++;
     } 
     
     printf("Finished backward %d\n", is_used); 
+    
     if(!is_used)
         return false; 
 
@@ -243,10 +246,10 @@ void liveness_analysis_t<value_type>::set_compress(std::vector<std::vector<void 
         if (dir != layer->second) {
             continue;
         }
-	printf("Accessing compress! \n");
+	
         int layer_id = layer->first;
         compress->operator[](layer_id).resize(0);
-	printf("Accessed compress! \n");
+	
         // we don't care about the DATA layer
         auto tmp = all_layers.find(layer_id);
         if (tmp == all_layers.end() || ((base_layer_t<value_type> *) tmp->second)->get_layer_type() == DATA_L) {
@@ -267,18 +270,15 @@ void liveness_analysis_t<value_type>::set_compress(std::vector<std::vector<void 
             {
                 continue;
             }
-            
-            auto r_it = regulated_tensors->find(t);
-            if (r_it != regulated_tensors->end())
-            {
-                bool canCompress = is_compressible_afterwards(layer_id, t);
-                if(canCompress) {
-                    printf("Compress tensor %d at layer %d\n", t->get_layer_id(), layer_id);
-                    compress->operator[](layer_id).push_back((void *)t);
-                }
-                    
-                // ins->operator[](layer_id).push_back((void *)t);
+
+            printf("Checking tensor %d at layer %d\n", t->get_layer_id(), layer_id);
+            bool canCompress = is_compressible_afterwards(layer_id, t);
+            if(canCompress) {
+                printf("Compress tensor %d at layer %d\n", t->get_layer_id(), layer_id);
+                compress->operator[](layer_id).push_back((void *)t);
             }
+                    
+            
         }
     }
 
