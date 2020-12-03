@@ -69,7 +69,8 @@ bool liveness_analysis_t<value_type>::is_compressible_afterwards(int curt_layer_
         
         ++i;
     } 
-
+    is_used = false;
+    printf("Checking backward!\n"); 
     while(i < subsequent_layers.size()) {
         std::pair<int, net_comp> layer = subsequent_layers[i];
         
@@ -83,6 +84,7 @@ bool liveness_analysis_t<value_type>::is_compressible_afterwards(int curt_layer_
         ++i;
     } 
     
+    printf("Finished backward %d\n", is_used); 
     if(!is_used)
         return false; 
 
