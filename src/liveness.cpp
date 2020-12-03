@@ -381,6 +381,7 @@ void liveness_analysis_t<value_type>::update(int layer_id, net_comp dir) {
 //    return;
 
     std::vector<std::vector<tensor_t<value_type> *> > *outs;
+	std::vector<std::vector<tensor_t<value_type> *> > *compress_tensors = (std::vector<std::vector<tensor_t<value_type> *> > *) &f_compress_tensors;
     if (dir == FORWARD) {
         outs = (std::vector<std::vector<tensor_t<value_type> *> > *) &f_free_tensors;
     } else {
@@ -393,7 +394,7 @@ void liveness_analysis_t<value_type>::update(int layer_id, net_comp dir) {
     }
 
     // Compress tensors.    
-    for (auto it = compress->operator[](layer_id).begin(); it != compress->operator[](layer_id).end(); ++it) {
+    for (auto it = compress_tensors->operator[](layer_id).begin(); it != compress_tensors->operator[](layer_id).end(); ++it) {
         tensor_t<value_type> *t = *it;
         t->compress();
     }

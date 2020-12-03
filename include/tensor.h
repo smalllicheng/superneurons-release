@@ -99,15 +99,14 @@ private:
     void decompressGpuData();
     void freeSpaceGPU(mem_mode target=CPU);
 
-    void compress();
-    void decompress();
-
     // make it private
     void atomic_set_state(int m);
     inline void check_state(mem_mode target);
     
 public:
 
+    void compress();
+    void decompress();
     int hit_cnt = 0, miss_cnt = 0, into_cnt = 0;
 
     tensor_t(size_t n, size_t c, size_t h, size_t w, std::vector<tensor_t<value_type>* >* reg, TENSOR_TYPE dtype, int layer_id):tensor_id(tensor_counter) {
