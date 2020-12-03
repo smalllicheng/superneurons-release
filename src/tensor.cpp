@@ -115,12 +115,12 @@ void tensor_t<value_type>::compress() {
     if(true) {
 	// start with compression. 
 	zfp_type type = zfp_type_float;                          
-	zfp_field* field = zfp_field_1d(this->gpu_ptr, type, this->N * this->C * this->H * this->W);
+	zfp_field* field = zfp_field_4d(this->gpu_ptr, type, this->N, this->C, this->H, this->W);
 	
 	zfp_stream* zfp = zfp_stream_open(NULL);                  // compressed stream and parameters
-	zfp->maxbits = 16; 	
+	zfp->maxbits = 3072; 	
 	// initialize metadata for a compressed stream
-	zfp_stream_set_rate(zfp, 12, type, 1, 0);
+	zfp_stream_set_rate(zfp, 12, type, 4, 0);
 
 
 	// zfp_stream_set_accuracy(zfp, tolerance);                  // set tolerance for fixed-accuracy mode
@@ -141,6 +141,7 @@ void tensor_t<value_type>::compress() {
 	// Compress on gpu.
 	if (zfp_stream_set_execution(zfp, zfp_exec_cuda)) {
 		size_t zfpsize = zfp_compress(zfp, field);                // return value is byte size of compressed stream
+		// printf("Compressed zfp size is %d\n", zfpsize);
 		this->compressed_size = zfpsize; 
 		cudaMalloc((void **)&this->compressed_gpu_ptr, zfpsize);
 		// Copy to compressed region.
@@ -151,7 +152,7 @@ void tensor_t<value_type>::compress() {
 		cudaFree(buffer); 
 		// printf("compress tensor %p layer %d gpu %p  curt: %d\n", this, this->get_layer_id(), gpu_ptr, get_state());
 	} else {
-		printf("Compression wasn't successful!\n");
+		// printf("Compression wasn't successful!\n");
 	}
     } 
     // free gpu space
@@ -171,13 +172,13 @@ void tensor_t<value_type>::decompress() {
     // decompress the tensor. 
     size_t decompress_size = this->N * this->H * this->C * this->W;
     zfp_type type = zfp_type_float;
-    zfp_field* field = zfp_field_1d(this->gpu_ptr, type, decompress_size);
+    zfp_field* field = zfp_field_4d(this->gpu_ptr, type, this->N, this->H, this->C, this->W);
 
     bitstream * compressed_stream = stream_open((void *)this->compressed_gpu_ptr, this->compressed_size);
     zfp_stream* zfp = zfp_stream_open(compressed_stream);                  // compressed stream and parameters
-    zfp->maxbits = 16;
+    zfp->maxbits = 3072;
     // initialize metadata for a compressed stream
-    zfp_stream_set_rate(zfp, 12, type, 1, 0);
+    zfp_stream_set_rate(zfp, 12, type, 4, 0);
 
 
     // allocate buffer for compressed data
