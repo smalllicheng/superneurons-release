@@ -333,6 +333,7 @@ void liveness_analysis_t<value_type>::stash(int layer_id, net_comp dir) {
         } else {
             // Instead of this we can do compress to GPU. This is purely for CPU to GPU. 
             // Let's separate the concerns. 
+            // No change needed here for decompress.
             t->CPUtoGPU();
         }
     }
@@ -389,6 +390,12 @@ void liveness_analysis_t<value_type>::update(int layer_id, net_comp dir) {
     for (auto it = outs->operator[](layer_id).begin(); it != outs->operator[](layer_id).end(); ++it) {
         tensor_t<value_type> *t = *it;
         t->free_gpu_space(VOID);
+    }
+
+    // Compress tensors.    
+    for (auto it = compress->operator[](layer_id).begin(); it != compress->operator[](layer_id).end(); ++it) {
+        tensor_t<value_type> *t = *it;
+        t->compress();
     }
 
     // Compress tensors for forward.

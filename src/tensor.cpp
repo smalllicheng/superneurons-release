@@ -203,6 +203,7 @@ void tensor_t<value_type>::decompress() {
     // free compressed space
     cudaFree(this->compressed_gpu_ptr);
     
+    this->set_atomic_state(GPU_FUL);
 }
 
 template <class value_type>
