@@ -65,9 +65,10 @@ bool liveness_analysis_t<value_type>::is_compressible_afterwards(int curt_layer_
 
         bool is_used = is_used_by_layer(layer.first, layer.second, t);
         // return false if we need to use it for a forward layer. 
-        if(is_used)
+        if(is_used) {
+	    printf("Tensor at layer %d is being used by %d and direction %d", t->get_layer_id(), layer.first, layer.second);
             return false;
-        
+	}        
         i++;
     } 
 
@@ -77,12 +78,14 @@ bool liveness_analysis_t<value_type>::is_compressible_afterwards(int curt_layer_
         std::pair<int, net_comp> layer = subsequent_layers[i];
         
         // here dependency will be backward. 
-        bool is_used = is_used_by_layer(layer.first, layer.second, t);
+	printf("Checking backward layer %d, %d\n", layer.first, layer.second);
+        is_used = is_used_by_layer(layer.first, layer.second, t);
         
         // We need it in backward so compress it.
-        if(is_used)
+        if(is_used) {
+	    printf("Is used is true for backward!\n");
             break;
-        
+	}        
         i++;
     } 
     
