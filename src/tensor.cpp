@@ -102,7 +102,7 @@ void tensor_t<value_type>::GPUtoCPU() {
 // Tensor compression.
 // For now we just compress the activation maps of each conv.
 template <class value_type> 
-void tensor_t<value_type>::CompressTensor() {
+void tensor_t<value_type>::compress() {
     
     // check gpu_ptr
     if(this->gpt_ptr == NULL) {
@@ -112,24 +112,24 @@ void tensor_t<value_type>::CompressTensor() {
     // compress the tensor
 
     // free gpu space
-    freeSpaceGpu();
+    // freeSpaceGpu();
     
     // set the state to compressed.
-    this->atomic_set_state(GPU_COM);
-    return; 
+    // this->atomic_set_state(GPU_COM);
+    // return; 
 
 }
 
 // Tensor decompression. 
 template <class value_type> 
-void tensor_t<value_type>::DecompressTensor() {
+void tensor_t<value_type>::decompress() {
     if(this->compressed_gpu_ptr == NULL) 
         return; 
 
     // decompress the tensor. 
 
     // free compressed space
-    freeSpaceCompressed();
+    // freeSpaceCompressed();
 }
 
 template <class value_type>
@@ -142,6 +142,12 @@ void tensor_t<value_type>::CPUtoGPU() {
 
     if (data_t == DATA) {
         into_cnt += 1;
+    }
+
+    if(this->data_t == DATA && this->get_state() == GPU_COM) {
+        // compressed tensor use decompress. 
+        this->decompress();
+        return; 
     }
 
     if (this->get_state() == GPU_FUL) {

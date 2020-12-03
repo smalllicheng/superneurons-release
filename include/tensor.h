@@ -98,6 +98,9 @@ private:
     void decompressGpuData();
     void freeSpaceGPU(mem_mode target=CPU);
 
+    void compress();
+    void decompress();
+
     // make it private
     void atomic_set_state(int m);
     inline void check_state(mem_mode target);

@@ -50,6 +50,45 @@ bool liveness_analysis_t<value_type>::is_freeable_afterwards(int curt_layer_id, 
     return true;
 }
 
+template<class value_type>
+bool liveness_analysis_t<value_type>::is_compressable_afterwards(int curt_layer_id, tensor_t<value_type> *t) {
+    std::vector<std::pair<int, net_comp> > subsequent_layers = get_subsequent_layers(curt_layer_id, dir);
+    int i = 0; 
+    net_comp dir = FORWARD;
+    bool is_used = false; 
+    while(i < subsequent_layers.size() && dir == FORWARD) {
+        std::pair<int, net_comp> layer = subsequent_layers[i];
+        // Next loop for backward
+        if(layer.second == BACKWARD)
+            break; 
+
+        bool is_used = is_used_by_layer(layer.first, layer.second, t);
+        // return false if we need to use it for a forward layer. 
+        if(is_used)
+            return false;
+        
+        ++i;
+    } 
+
+    while(i < subsequent_layers.size()) {
+        std::pair<int, net_comp> layer = subsequent_layers[i];
+        
+        // here dependency will be backward. 
+        bool is_used = is_used_by_layer(layer.first, layer.second, t);
+        
+        // We need it in backward so compress it.
+        if(is_used)
+            break;
+        
+        ++i;
+    } 
+    
+    if(!is_used)
+        return false; 
+
+    return true;
+}
+
 // This is used to track which regulated tensors do each layers use.
 template<class value_type>
 void liveness_analysis_t<value_type>::set_ins(std::vector<std::vector<void *> > *ins, net_comp dir) {
@@ -145,7 +184,7 @@ void liveness_analysis_t<value_type>::set_outs(std::vector<std::vector<void *> >
         }
     }
 
-    // purify outs
+    // purify outs, basically don't double free, checks all layers to see the same tensors don't happen twice.
     for (auto layer = nets.begin(); layer != nets.end(); ++layer) {
         if (dir != layer->second) {
             continue;
@@ -182,6 +221,62 @@ void liveness_analysis_t<value_type>::set_outs(std::vector<std::vector<void *> >
             }
         }
     }
+}
+
+/*
+    Liveness based compression. We compress all the maps which are data and not going to be used in the forward pass.
+*/
+void liveness_analysis_t<value_type>::set_compress(std::vector<std::vector<void *> > *compress, net_comp dir) {
+    if(dir == BACKWARD) 
+        return; 
+    
+    auto all_layers = reg->get_net_layers();
+    auto nets = reg->get_net_comp_route();
+
+     for (auto layer = nets.begin(); layer != nets.end(); ++layer) {
+        // Make sure direction is forward.
+        if (dir != layer->second) {
+            continue;
+        }
+
+        int layer_id = layer->first;
+        compress->operator[](layer_id).resize(0);
+
+        // we don't care about the DATA layer
+        auto tmp = all_layers.find(layer_id);
+        if (tmp == all_layers.end() || ((base_layer_t<value_type> *) tmp->second)->get_layer_type() == DATA_L) {
+            continue;
+        }
+
+        // Get forward tensors. 
+        std::vector<tensor_t<value_type> *> *tensors = reg->get_forward_dependency(layer_id);
+
+        if (tensors == NULL)
+            return;
+
+        for (size_t i = 0; i < tensors->size(); i++)
+        {
+            tensor_t<value_type> *t = tensors->operator[](i);
+            // We just care to compress the data outs of each.
+            if (t->get_type() != DATA)
+            {
+                continue;
+            }
+            
+            auto r_it = regulated_tensors->find(t);
+            if (r_it != regulated_tensors->end())
+            {
+                bool canCompress = is_compressable_afterward(layer_id, t);
+                if(canCompress) {
+                    printf("Compress tensor %d at layer %d\n", t->get_id(), layer_id);
+                    compress->operator[](layer_id).push_back((void *)t);
+                }
+                    
+                // ins->operator[](layer_id).push_back((void *)t);
+            }
+        }
+    }
+
 }
 
 

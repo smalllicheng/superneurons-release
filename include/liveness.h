@@ -20,6 +20,7 @@ private:
     std::vector<std::vector<void *> > b_stash_tensors;
     std::vector<std::vector<void *> > f_free_tensors;
     std::vector<std::vector<void *> > b_free_tensors;
+    std::vector<std::vector<void *> > f_compress_tensors; 
     registry_t <value_type> *reg;
     std::map<void *, mem_mode> *regulated_tensors;
 
@@ -39,6 +40,9 @@ private:
     void set_ins(std::vector<std::vector<void *> > *ins, net_comp dir);
 
     void set_outs(std::vector<std::vector<void *> > *outs, net_comp dir);
+
+    // compression can only happen in forward not reverse.
+    void set_compress(std::vector<std::vector<void *> > *compress, net_comp dir);
 
     inline bool is_checkpoint(base_layer_t <value_type> *l) {
         for (auto it = CHECKPOINT_LAYERS.begin(); it != CHECKPOINT_LAYERS.end(); ++it) {
@@ -70,6 +74,9 @@ public:
         // This checks if subsequent layers use this tensor, if they dont they free it.
         set_outs(&f_free_tensors, FORWARD);
         set_outs(&b_free_tensors, BACKWARD);
+
+        // Set compressed tensors. 
+        set_compress(&f_compress_tensors, FORWARD);
 
 #ifdef DEBUG
         printf("--------f_stash_tensors-----------\n");
@@ -109,7 +116,9 @@ public:
         }
         printf("\n\n");
 #endif
-    }
+
+    
+}
 
     void stash(int layer_id, net_comp dir);
 
