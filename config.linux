@@ -1,6 +1,6 @@
 CUDA_ROOT_DIR=/usr/local/cuda
 CUDNN_ROOT_DIR=/usr/local/cuda
-ZFP_ROOT_DIR=/home/shauryapatel1995/zfp
+ZFP_ROOT_DIR=/home/jupyter/zfp
 
 LIBJPEG_INCLUDE_DIR = /usr/include/
 LIBJPEG_LIB_FILE = /usr/lib/x86_64-linux-gnu/libjpeg.so
